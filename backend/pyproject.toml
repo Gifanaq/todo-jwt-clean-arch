@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "todo_jwt_clean_arch"
 version = "0.1.0"
-description = "Backend for T-Invest project"
+description = "Backend for ToDo list project"
 authors = ["Vladislav Kashapov <robotkot.1982@inbox.ru>"]
 package-mode = false
 
