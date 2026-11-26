@@ -1,5 +1,6 @@
 .PHONY: help \
         backend-install backend-run backend-test backend-lint backend-fmt backend-mypy backend-lint-fix \
+        backend-db-up backend-db-down backend-migrate backend-migration \
         frontend-install frontend-build frontend-run frontend-test frontend-lint frontend-fmt frontend-typecheck
 
 help:
@@ -10,6 +11,10 @@ help:
 	@echo "  backend-lint     - ruff check"
 	@echo "  backend-fmt      - ruff format"
 	@echo "  backend-mypy     - mypy src"
+	@echo "  backend-db-up    - start local PostgreSQL"
+	@echo "  backend-db-down  - stop local PostgreSQL"
+	@echo "  backend-migrate  - apply database migrations"
+	@echo "  backend-migration - create a migration from model changes"
 	@echo ""
 	@echo "Frontend:"
 	@echo "  frontend-install   - install dependencies"
@@ -24,7 +29,7 @@ backend-install:
 	cd backend && poetry install
 
 backend-run:
-	cd backend && poetry run python -m src.main
+	cd backend && poetry run uvicorn src.main:app --reload
 
 backend-test:
 	cd backend && poetry run pytest
@@ -40,6 +45,18 @@ backend-fmt:
 
 backend-mypy:
 	cd backend && poetry run mypy src
+
+backend-db-up:
+	docker compose up -d db
+
+backend-db-down:
+	docker compose down
+
+backend-migrate:
+	cd backend && poetry run alembic upgrade head
+
+backend-migration:
+	cd backend && poetry run alembic revision --autogenerate -m "$(message)"
 
 
 frontend-install:
