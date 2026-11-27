@@ -1,5 +1,8 @@
 import axios from 'axios';
-import type { AuthResponse } from './types';
+
+import { getAccessToken } from './accessToken';
+import { refreshSession } from './refresh';
+import { notifySessionExpired } from './sessionEvents';
 
 declare module 'axios' {
   interface AxiosRequestConfig {
@@ -12,11 +15,6 @@ export const api = axios.create({
   withCredentials: true,
 });
 
-const refreshApi = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
-  withCredentials: true,
-});
-
 const authEndpoints = new Set([
   '/auth/login',
   '/auth/register',
@@ -24,41 +22,10 @@ const authEndpoints = new Set([
   '/auth/logout',
 ]);
 
-let accessToken: string | null = null;
-let refreshPromise: Promise<AuthResponse> | null = null;
-
-export function setAccessToken(token: string | null) {
-  accessToken = token;
-}
-
-export function refreshSession(): Promise<AuthResponse> {
-  if (!refreshPromise) {
-    refreshPromise = refreshApi
-      .post<AuthResponse>('/auth/refresh')
-      .then(({ data }) => {
-        setAccessToken(data.access_token);
-        return data;
-      })
-      .catch((error: unknown) => {
-        if (
-          axios.isAxiosError<unknown>(error) &&
-          error.response?.status === 401
-        ) {
-          setAccessToken(null);
-        }
-
-        throw error;
-      })
-      .finally(() => {
-        refreshPromise = null;
-      });
-  }
-
-  return refreshPromise;
-}
-
 api.interceptors.request.use((config) => {
-  if (accessToken) {
+  const accessToken = getAccessToken();
+
+  if (accessToken !== null) {
     config.headers.set('Authorization', `Bearer ${accessToken}`);
   } else {
     config.headers.delete('Authorization');
@@ -90,6 +57,13 @@ api.interceptors.response.use((response) => response,
     try {
       await refreshSession();
     } catch (refreshError) {
+      if (
+        axios.isAxiosError<unknown>(refreshError) &&
+        refreshError.response?.status === 401
+      ) {
+        notifySessionExpired();
+      }
+
       return Promise.reject(refreshError);
     }
 

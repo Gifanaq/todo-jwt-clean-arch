@@ -1,7 +1,8 @@
-import { api, refreshSession, setAccessToken } from './axios';
+import { setAccessToken } from './accessToken';
+import { api } from './axios';
 import type { AuthResponse } from './types';
 
-export { refreshSession };
+export { refreshSession } from './refresh';
 
 export async function login(login: string, password: string) {
   const { data } = await api.post<AuthResponse>('/auth/login', {

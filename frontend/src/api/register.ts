@@ -1,4 +1,5 @@
-import { api, setAccessToken } from './axios';
+import { setAccessToken } from './accessToken';
+import { api } from './axios';
 import type { AuthResponse } from './types';
 
 export async function register(login: string, password: string) {

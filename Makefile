@@ -66,7 +66,7 @@ frontend-build:
 	cd frontend && npm run build
 
 frontend-run:
-	cd frontend && npm run dev
+	cd frontend && npm run dev -- --port 3000 --strictPort
 
 frontend-test:
 	cd frontend && npm test
